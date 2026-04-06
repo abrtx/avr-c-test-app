@@ -19,12 +19,13 @@ CFLAGS=-Wall -Os -mmcu=$(MCU) -DF_CPU=$(F_CPU)
 CFLAGS+=-I$(SRC_DIR)/app
 CFLAGS+=-I$(SRC_DIR)/drivers/gpio
 CFLAGS+=-I$(SRC_DIR)/drivers/led
+CFLAGS+=-I$(SRC_DIR)/drivers/button
 
 CFLAGS_DEBUG=-Wall -Og -g -mmcu=$(MCU) -DF_CPU=$(F_CPU)
 CFLAGS_DEBUG+=-I$(SRC_DIR)/app
 CFLAGS_DEBUG+=-I$(SRC_DIR)/drivers/gpio
 CFLAGS_DEBUG+=-I$(SRC_DIR)/drivers/led
-
+CFLAGS_DEBUG+=-I$(SRC_DIR)/drivers/button
 # -----------------------------
 # Output
 # -----------------------------

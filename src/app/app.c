@@ -5,9 +5,8 @@
 #include "state.h"
 #include "gpio.h"
 #include "led.h"
+#include "button.h"
 
-// -----------------------------
-// LED CONFIG
 // -----------------------------
 Led leds[] = {
     { &GPIOB, 2 },
@@ -19,7 +18,6 @@ int LED_COUNT = 3;
 
 // -----------------------------
 volatile uint32_t millis = 0;
-static volatile uint8_t button_event = 0;
 
 // -----------------------------
 // TIMER ISR
@@ -29,28 +27,11 @@ ISR(TIMER0_COMPA_vect) {
 }
 
 // -----------------------------
-// BUTTON ISR
-// -----------------------------
-ISR(INT0_vect) {
-    button_event = 1;
-}
-
-// -----------------------------
 static void timer0_init(void) {
     TCCR0A |= (1 << WGM01);
     OCR0A = 249;
     TCCR0B |= (1 << CS01) | (1 << CS00);
     TIMSK0 |= (1 << OCIE0A);
-}
-
-static void button_init(void) {
-    DDRD &= ~(1 << PD2);
-    PORTD |= (1 << PD2);
-
-    EICRA |= (1 << ISC01);
-    EICRA &= ~(1 << ISC00);
-
-    EIMSK |= (1 << INT0);
 }
 
 // -----------------------------
@@ -69,10 +50,14 @@ void app_init(void) {
 // -----------------------------
 void app_loop(void) {
 
-    if (button_event) {
+    // update button state
+    button_update();
+
+    // handle event
+    if (button_pressed()) {
         state_handle_event();
-        button_event = 0;
     }
 
+    // run state machine
     state_run();
 }

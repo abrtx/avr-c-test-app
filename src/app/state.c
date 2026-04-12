@@ -1,6 +1,6 @@
 #include "state.h"
 #include "led_pattern.h"
-
+#include "log.h"
 // -----------------------------
 static AppState current_state = STATE_OFF;
 
@@ -23,16 +23,19 @@ void state_handle_event(void) {
         case STATE_OFF:
             state_set(STATE_BLINK);
             led_pattern_set(LED_PATTERN_BLINK);
+	    log_fmt("State -> BLINK\n");
             break;
 
         case STATE_BLINK:
             state_set(STATE_RUNNING);
             led_pattern_set(LED_PATTERN_RUNNING);
+	    log_fmt("State -> RUNNING\n"); 
             break;
 
         case STATE_RUNNING:
             state_set(STATE_OFF);
             led_pattern_set(LED_PATTERN_OFF);
+	    log_fmt("State -> OFF\n");
             break;
     }
 }

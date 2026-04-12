@@ -16,6 +16,7 @@ SRC := $(shell find $(SRC_DIR) -name '*.c')
 # Flags
 # -----------------------------
 CFLAGS=-Wall -Os -mmcu=$(MCU) -DF_CPU=$(F_CPU)
+CFLAGS+=-I$(SRC_DIR)/config
 CFLAGS+=-I$(SRC_DIR)/app
 CFLAGS+=-I$(SRC_DIR)/app/event
 CFLAGS+=-I$(SRC_DIR)/app/scheduler
@@ -26,6 +27,7 @@ CFLAGS+=-I$(SRC_DIR)/drivers/timer
 CFLAGS+=-I$(SRC_DIR)/drivers/led_pattern
 
 CFLAGS_DEBUG=-Wall -Og -g -mmcu=$(MCU) -DF_CPU=$(F_CPU)
+CFLAGS_DEBUG+=-I$(SRC_DIR)/config
 CFLAGS_DEBUG+=-I$(SRC_DIR)/app
 CFLAGS_DEBUG+=-I$(SRC_DIR)/app/event
 CFLAGS_DEBUG+=-I$(SRC_DIR)/app/scheduler

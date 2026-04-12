@@ -10,22 +10,22 @@
 #include "timer.h"
 #include "scheduler.h"
 #include "led_pattern.h"
+#include "config.h"
 
 // -----------------------------
 // LEDs
 // -----------------------------
 Led leds[] = {
-    { &GPIOB, 2 },
-    { &GPIOB, 3 },
-    { &GPIOB, 4 }
+    { &LED1_GPIO, LED1_PIN },
+    { &LED2_GPIO, LED2_PIN },
+    { &LED3_GPIO, LED3_PIN }
 };
 
-int LED_COUNT = 3;
 
 // -----------------------------
 // BUTTON
 // -----------------------------
-Button btn1 = { &GPIOD, 2, BUTTON_ACTIVE_LOW };
+Button btn1 = { &BUTTON1_GPIO, BUTTON1_PIN, BUTTON1_MODE };
 
 // -----------------------------
 // TASK WRAPPERS

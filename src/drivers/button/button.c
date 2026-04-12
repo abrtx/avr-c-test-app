@@ -2,6 +2,7 @@
 #include <avr/interrupt.h>
 
 #include "button.h"
+#include "event.h"
 
 // shared time from app
 extern volatile uint32_t millis;
@@ -50,9 +51,8 @@ void button_update(void) {
 
         if ((now - last_time) > DEBOUNCE_MS) {
 
-            // still pressed?
             if (!(PIND & (1 << BUTTON_PIN))) {
-                pressed_flag = 1;
+                event_push(EVENT_BUTTON_PRESSED);
                 last_time = now;
             }
         }

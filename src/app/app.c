@@ -6,6 +6,7 @@
 #include "gpio.h"
 #include "led.h"
 #include "button.h"
+#include "event.h"
 
 // -----------------------------
 Led leds[] = {
@@ -50,14 +51,26 @@ void app_init(void) {
 // -----------------------------
 void app_loop(void) {
 
-    // update button state
+    // update inputs
     button_update();
 
-    // handle event
-    if (button_pressed()) {
-        state_handle_event();
+    // process events
+    EventType ev;
+
+    while ((ev = event_pop()) != EVENT_NONE) {
+
+        switch (ev) {
+
+            case EVENT_BUTTON_PRESSED:
+                state_handle_event();
+                break;
+
+            default:
+                break;
+        }
     }
 
     // run state machine
     state_run();
 }
+

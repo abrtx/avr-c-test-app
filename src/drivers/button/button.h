@@ -2,14 +2,30 @@
 #define BUTTON_H
 
 #include <stdint.h>
+#include "gpio.h"
 
-// Initialize button (INT0 - PD2)
-void button_init(void);
+// -----------------------------
+typedef enum {
+    BUTTON_ACTIVE_LOW = 0,
+    BUTTON_ACTIVE_HIGH
+} ButtonMode;
 
-// Call periodically (from main loop)
-void button_update(void);
+// -----------------------------
+typedef struct {
+    Gpio *gpio;
+    uint8_t pin;
+    ButtonMode mode;
 
-// Returns 1 only once per press (debounced)
-uint8_t button_pressed(void);
+    // internal state
+    uint8_t last_state;
+    uint32_t last_time;
+    uint8_t pressed_flag;
+
+} Button;
+
+// -----------------------------
+void button_init(Button *btn);
+void button_update(Button *btn);
+uint8_t button_pressed(Button *btn);
 
 #endif

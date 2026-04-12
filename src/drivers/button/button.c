@@ -1,49 +1,62 @@
-#include <avr/io.h>
-#include <avr/interrupt.h>
-
 #include "button.h"
-#include "event.h"
 #include "timer.h"
 
-#define BUTTON_PIN PD2
 #define DEBOUNCE_MS 50
 
-static volatile uint8_t raw_event = 0;
-static uint32_t last_time = 0;
+// -----------------------------
+static uint8_t read_raw(Button *btn) {
 
-ISR(INT0_vect) {
-    raw_event = 1;
+    uint8_t val = gpio_read(btn->gpio, btn->pin);
+
+    if (btn->mode == BUTTON_ACTIVE_LOW)
+        return !val;
+
+    return val;
 }
 
-void button_init(void) {
+// -----------------------------
+void button_init(Button *btn) {
 
-    DDRD &= ~(1 << BUTTON_PIN);
-    PORTD |= (1 << BUTTON_PIN);
+    gpio_set_mode(btn->gpio, btn->pin, GPIO_INPUT);
 
-    EICRA |= (1 << ISC01);
-    EICRA &= ~(1 << ISC00);
+    // enable pull-up if active low
+    if (btn->mode == BUTTON_ACTIVE_LOW) {
+        gpio_write(btn->gpio, btn->pin, 1);
+    }
 
-    EIMSK |= (1 << INT0);
+    btn->last_state = 0;
+    btn->last_time = 0;
+    btn->pressed_flag = 0;
 }
 
-void button_update(void) {
+// -----------------------------
+void button_update(Button *btn) {
 
-    if (raw_event) {
+    uint8_t current = read_raw(btn);
+    uint32_t now = timer_now();
 
-        uint32_t now = timer_now();
+    // detect change
+    if (current != btn->last_state) {
 
-        if ((now - last_time) > DEBOUNCE_MS) {
+        if ((now - btn->last_time) > DEBOUNCE_MS) {
 
-            if (!(PIND & (1 << BUTTON_PIN))) {
-                event_push(EVENT_BUTTON_PRESSED);
-                last_time = now;
+            btn->last_state = current;
+            btn->last_time = now;
+
+            if (current) {
+                btn->pressed_flag = 1;
             }
         }
-
-        raw_event = 0;
     }
 }
 
-uint8_t button_pressed(void) {
+// -----------------------------
+uint8_t button_pressed(Button *btn) {
+
+    if (btn->pressed_flag) {
+        btn->pressed_flag = 0;
+        return 1;
+    }
+
     return 0;
 }

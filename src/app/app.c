@@ -12,6 +12,7 @@
 #include "led_pattern.h"
 #include "config.h"
 #include "log.h"
+#include "cmd.h"
 
 // -----------------------------
 // LEDs
@@ -37,6 +38,10 @@ void task_button(void) {
     if (button_pressed(&btn1)) {
         event_push(EVENT_BUTTON_PRESSED);
     }
+}
+
+void task_cmd(void) {
+    cmd_update();
 }
 
 void task_events(void) {
@@ -68,6 +73,8 @@ void task_led(void) {
 Task t_button = { task_button, 10, 0 }; // every 10 ms
 Task t_events = { task_events, 0, 0 };  // every loop
 Task t_led = { task_led, 10, 0 }; // every 10 ms
+Task t_cmd = { task_cmd, 10, 0 };
+
 // Task t_state  = { task_state, 0, 0 };   // every loop
 
 // -----------------------------
@@ -87,6 +94,7 @@ void app_init(void) {
     scheduler_add(&t_button);
     scheduler_add(&t_events);
     scheduler_add(&t_led);     // 🔥 MISSING BEFORE
+    scheduler_add(&t_cmd);
     //scheduler_add(&t_state);
 
     sei();

@@ -17,6 +17,7 @@ SRC := $(shell find $(SRC_DIR) -name '*.c')
 # -----------------------------
 CFLAGS=-Wall -Os -mmcu=$(MCU) -DF_CPU=$(F_CPU)
 CFLAGS+=-I$(SRC_DIR)/config
+CFLAGS+=-I$(SRC_DIR)/utils
 CFLAGS+=-I$(SRC_DIR)/app
 CFLAGS+=-I$(SRC_DIR)/app/event
 CFLAGS+=-I$(SRC_DIR)/app/scheduler
@@ -25,9 +26,11 @@ CFLAGS+=-I$(SRC_DIR)/drivers/led
 CFLAGS+=-I$(SRC_DIR)/drivers/button
 CFLAGS+=-I$(SRC_DIR)/drivers/timer
 CFLAGS+=-I$(SRC_DIR)/drivers/led_pattern
+CFLAGS+=-I$(SRC_DIR)/drivers/uart
 
 CFLAGS_DEBUG=-Wall -Og -g -mmcu=$(MCU) -DF_CPU=$(F_CPU)
 CFLAGS_DEBUG+=-I$(SRC_DIR)/config
+CFLAGS_DEBUG+=-I$(SRC_DIR)/utils
 CFLAGS_DEBUG+=-I$(SRC_DIR)/app
 CFLAGS_DEBUG+=-I$(SRC_DIR)/app/event
 CFLAGS_DEBUG+=-I$(SRC_DIR)/app/scheduler
@@ -36,6 +39,7 @@ CFLAGS_DEBUG+=-I$(SRC_DIR)/drivers/led
 CFLAGS_DEBUG+=-I$(SRC_DIR)/drivers/button
 CFLAGS_DEBUG+=-I$(SRC_DIR)/drivers/timer
 CFLAGS_DEBUG+=-I$(SRC_DIR)/drivers/led_pattern
+CFLAGS_DEBUG+=-I$(SRC_DIR)/drivers/uart
 # -----------------------------
 # Output
 # -----------------------------

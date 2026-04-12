@@ -11,6 +11,7 @@
 #include "scheduler.h"
 #include "led_pattern.h"
 #include "config.h"
+#include "log.h"
 
 // -----------------------------
 // LEDs
@@ -46,6 +47,7 @@ void task_events(void) {
 
         switch (ev) {
             case EVENT_BUTTON_PRESSED:
+		log_write("Button pressed\n");
                 state_handle_event();
                 break;
 
@@ -78,6 +80,8 @@ void app_init(void) {
     button_init(&btn1);
     timer_init();
     led_pattern_init(leds, LED_COUNT);
+    log_init();
+
 
     // register tasks
     scheduler_add(&t_button);

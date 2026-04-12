@@ -1,12 +1,7 @@
 #include "state.h"
-#include "led.h"
-#include "timer.h"
+#include "led_pattern.h"
 
-// external from app
-extern volatile uint32_t millis;
-extern Led leds[];
-extern int LED_COUNT;
-
+// -----------------------------
 static AppState current_state = STATE_OFF;
 
 // -----------------------------
@@ -22,72 +17,29 @@ AppState state_get(void) {
 // EVENT TRANSITION
 // -----------------------------
 void state_handle_event(void) {
+
     switch (current_state) {
+
         case STATE_OFF:
-            current_state = STATE_BLINK;
+            state_set(STATE_BLINK);
+            led_pattern_set(LED_PATTERN_BLINK);
             break;
 
         case STATE_BLINK:
-            current_state = STATE_RUNNING;
+            state_set(STATE_RUNNING);
+            led_pattern_set(LED_PATTERN_RUNNING);
             break;
 
         case STATE_RUNNING:
-            current_state = STATE_OFF;
+            state_set(STATE_OFF);
+            led_pattern_set(LED_PATTERN_OFF);
             break;
     }
 }
 
 // -----------------------------
-// STATES
-// -----------------------------
-static void state_off(void) {
-    for (int i = 0; i < LED_COUNT; i++)
-        led_off(&leds[i]);
-}
-
-static void state_blink(void) {
-    static uint32_t last = 0;
-
-    if (timer_elapsed(last, 200)) {
-
-        for (int i = 0; i < LED_COUNT; i++)
-            led_toggle(&leds[i]);
-
-        last = timer_now();
-    }
-}
-
-static void state_running(void) {
-    static uint32_t last = 0;
-    static int index = 0;
-
-    if (timer_elapsed(last, 100)) {
-
-        for (int i = 0; i < LED_COUNT; i++)
-            led_off(&leds[i]);
-
-        led_on(&leds[index]);
-
-        index = (index + 1) % LED_COUNT;
-        last = timer_now();
-    }
-}
-
-// -----------------------------
-// MAIN DISPATCH
+// MAIN LOOP (logic only)
 // -----------------------------
 void state_run(void) {
-    switch (current_state) {
-        case STATE_OFF:
-            state_off();
-            break;
-
-        case STATE_BLINK:
-            state_blink();
-            break;
-
-        case STATE_RUNNING:
-            state_running();
-            break;
-    }
+    // intentionally empty for now
 }

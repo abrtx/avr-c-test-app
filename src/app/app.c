@@ -9,6 +9,7 @@
 #include "event.h"
 #include "timer.h"
 #include "scheduler.h"
+#include "led_pattern.h"
 
 // -----------------------------
 // LEDs
@@ -54,16 +55,18 @@ void task_events(void) {
     }
 }
 
-void task_state(void) {
-    state_run();
+void task_led(void) {
+    led_pattern_update();
 }
+
 
 // -----------------------------
 // TASKS
 // -----------------------------
 Task t_button = { task_button, 10, 0 }; // every 10 ms
 Task t_events = { task_events, 0, 0 };  // every loop
-Task t_state  = { task_state, 0, 0 };   // every loop
+Task t_led = { task_led, 10, 0 }; // every 10 ms
+// Task t_state  = { task_state, 0, 0 };   // every loop
 
 // -----------------------------
 void app_init(void) {
@@ -74,14 +77,17 @@ void app_init(void) {
 
     button_init(&btn1);
     timer_init();
+    led_pattern_init(leds, LED_COUNT);
 
     // register tasks
     scheduler_add(&t_button);
     scheduler_add(&t_events);
-    scheduler_add(&t_state);
+    scheduler_add(&t_led);     // 🔥 MISSING BEFORE
+    //scheduler_add(&t_state);
 
     sei();
 }
+
 
 // -----------------------------
 void app_loop(void) {

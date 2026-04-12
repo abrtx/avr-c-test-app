@@ -1,5 +1,6 @@
 #include "state.h"
 #include "led.h"
+#include "timer.h"
 
 // external from app
 extern volatile uint32_t millis;
@@ -47,11 +48,12 @@ static void state_off(void) {
 static void state_blink(void) {
     static uint32_t last = 0;
 
-    if ((millis - last) > 200) {
+    if (timer_elapsed(last, 200)) {
+
         for (int i = 0; i < LED_COUNT; i++)
             led_toggle(&leds[i]);
 
-        last = millis;
+        last = timer_now();
     }
 }
 
@@ -59,7 +61,7 @@ static void state_running(void) {
     static uint32_t last = 0;
     static int index = 0;
 
-    if ((millis - last) > 100) {
+    if (timer_elapsed(last, 100)) {
 
         for (int i = 0; i < LED_COUNT; i++)
             led_off(&leds[i]);
@@ -67,7 +69,7 @@ static void state_running(void) {
         led_on(&leds[index]);
 
         index = (index + 1) % LED_COUNT;
-        last = millis;
+        last = timer_now();
     }
 }
 

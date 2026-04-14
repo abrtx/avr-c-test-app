@@ -14,5 +14,7 @@ AppState state_get(void);
 
 void state_handle_event(void);
 void state_run(void);
+const char* state_to_string(AppState state);
+
 
 #endif

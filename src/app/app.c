@@ -36,7 +36,7 @@ void task_button(void) {
     button_update(&btn1);
 
     if (button_pressed(&btn1)) {
-	log_fmt("BTN pressed\n");
+	log_fmt("BTN pressed\r\n");
         event_push(EVENT_BUTTON_PRESSED);
     }
 }
@@ -50,11 +50,11 @@ void task_events(void) {
     EventType ev;
 
     while ((ev = event_pop()) != EVENT_NONE) {
-	log_fmt("Event: %d\n", ev);
+	log_fmt("Event: %d\r\n", ev);
 
         switch (ev) {
             case EVENT_BUTTON_PRESSED:
-		log_write("Button pressed\n");
+		log_write("Button pressed\r\n");
                 state_handle_event();
                 break;
 
@@ -90,7 +90,7 @@ void app_init(void) {
     timer_init();
     led_pattern_init(leds, LED_COUNT);
     log_init();
-    log_fmt("System init\n");
+    log_fmt("System init\r\n");
 
     // register tasks
     scheduler_add(&t_button);
@@ -100,7 +100,7 @@ void app_init(void) {
     //scheduler_add(&t_state);
 
     sei();
-    log_fmt("System ready\n");
+    log_fmt("System ready\r\n");
 }
 
 

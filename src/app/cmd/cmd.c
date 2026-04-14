@@ -11,6 +11,7 @@
 
 static char buffer[CMD_BUFFER_SIZE];
 static uint8_t index = 0;
+static uint8_t prompt_shown = 0;
 
 // -----------------------------
 // Command handlers
@@ -39,6 +40,11 @@ static void cmd_status(void) {
 }
 
 static void cmd_help(void); // forward
+
+
+static void cmd_prompt(void) {
+    log_fmt("> ");
+}
 
 // -----------------------------
 // Command table
@@ -94,23 +100,43 @@ static void process_command(const char *cmd) {
 // -----------------------------
 void cmd_update(void) {
 
+    if (!prompt_shown) {
+        cmd_prompt();
+        prompt_shown = 1;
+    }
+
     while (uart_available()) {
 
         char c = uart_read_char();
 
+        // echo
+        uart_write_char(c);
+
         if (c == '\r' || c == '\n') {
+
+            uart_write_string("\r\n");
 
             buffer[index] = '\0';
 
-            if (index > 0) {   // 🔥 avoid empty command
+            if (index > 0) {
                 process_command(buffer);
             }
 
             index = 0;
 
-        } else if (index < CMD_BUFFER_SIZE - 1) {
+            cmd_prompt();
+        }
+        else if (c == 127 || c == '\b') {
+
+            if (index > 0) {
+                index--;
+                uart_write_string("\b \b");
+            }
+        }
+        else if (index < CMD_BUFFER_SIZE - 1) {
 
             buffer[index++] = c;
         }
     }
 }
+

@@ -13,41 +13,84 @@ static char buffer[CMD_BUFFER_SIZE];
 static uint8_t index = 0;
 
 // -----------------------------
-static void process_command(const char *cmd) {
+// Command handlers
+// -----------------------------
+static void cmd_off(void) {
+    state_set(STATE_OFF);
+    led_pattern_set(LED_PATTERN_OFF);
+    log_fmt("OK: OFF\r\n");
+}
 
-    if (strcmp(cmd, "off") == 0) {
+static void cmd_blink(void) {
+    state_set(STATE_BLINK);
+    led_pattern_set(LED_PATTERN_BLINK);
+    log_fmt("OK: BLINK\r\n");
+}
 
-        state_set(STATE_OFF);
-        led_pattern_set(LED_PATTERN_OFF);
-        log_fmt("OK: OFF\r\n");
+static void cmd_run(void) {
+    state_set(STATE_RUNNING);
+    led_pattern_set(LED_PATTERN_RUNNING);
+    log_fmt("OK: RUNNING\r\n");
+}
 
-    } else if (strcmp(cmd, "blink") == 0) {
+static void cmd_status(void) {
+    log_fmt("State: %s\r\n", state_to_string(state_get()));
+    log_fmt("LEDs: %d\r\n", LED_COUNT);
+}
 
-        state_set(STATE_BLINK);
-        led_pattern_set(LED_PATTERN_BLINK);
-        log_fmt("OK: BLINK\r\n");
+static void cmd_help(void); // forward
 
-    } else if (strcmp(cmd, "run") == 0) {
+// -----------------------------
+// Command table
+// -----------------------------
+typedef struct {
+    const char *name;
+    void (*handler)(void);
+    const char *help;
+} Command;
 
-        state_set(STATE_RUNNING);
-        led_pattern_set(LED_PATTERN_RUNNING);
-        log_fmt("OK: RUNNING\r\n");
+static const Command commands[] = {
+    { "off",    cmd_off,    "Turn OFF LEDs" },
+    { "blink",  cmd_blink,  "Blink LEDs" },
+    { "run",    cmd_run,    "Running pattern" },
+    { "status", cmd_status, "Show system status" },
+    { "help",   cmd_help,   "Show this help" },
+};
 
-    } 
-    // 🔥 NEW COMMAND
-    else if (strcmp(cmd, "status") == 0) {
+#define CMD_COUNT (sizeof(commands) / sizeof(commands[0]))
 
-        log_fmt("State: %s\r\n", state_to_string(state_get()));
-        log_fmt("LEDs: %d\r\n", LED_COUNT);
+// -----------------------------
+// Help command
+// -----------------------------
+static void cmd_help(void) {
 
-    } 
-    else {
+    log_fmt("Commands:\r\n");
 
-        log_fmt("ERR: Unknown command\r\n");
+    for (uint8_t i = 0; i < CMD_COUNT; i++) {
+        log_fmt(" - %s: %s\r\n",
+            commands[i].name,
+            commands[i].help);
     }
 }
 
+// -----------------------------
+// Dispatcher
+// -----------------------------
+static void process_command(const char *cmd) {
 
+    for (uint8_t i = 0; i < CMD_COUNT; i++) {
+
+        if (strcmp(cmd, commands[i].name) == 0) {
+            commands[i].handler();
+            return;
+        }
+    }
+
+    log_fmt("ERR: Unknown command\r\n");
+}
+
+// -----------------------------
+// UART processing
 // -----------------------------
 void cmd_update(void) {
 
@@ -58,7 +101,11 @@ void cmd_update(void) {
         if (c == '\r' || c == '\n') {
 
             buffer[index] = '\0';
-            process_command(buffer);
+
+            if (index > 0) {   // 🔥 avoid empty command
+                process_command(buffer);
+            }
+
             index = 0;
 
         } else if (index < CMD_BUFFER_SIZE - 1) {

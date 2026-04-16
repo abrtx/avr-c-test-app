@@ -8,7 +8,8 @@
 typedef enum {
     LED_PATTERN_OFF = 0,
     LED_PATTERN_BLINK,
-    LED_PATTERN_RUNNING
+    LED_PATTERN_RUNNING,
+    LED_PATTERN_MANUAL
 } LedPattern;
 
 // -----------------------------

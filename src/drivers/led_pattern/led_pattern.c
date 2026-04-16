@@ -62,6 +62,10 @@ static void pattern_running(void) {
 // -----------------------------
 void led_pattern_update(void) {
 
+    if (current_pattern == LED_PATTERN_MANUAL) {
+        return; // 🔥 do nothing
+    }
+    
     switch (current_pattern) {
 
         case LED_PATTERN_OFF:

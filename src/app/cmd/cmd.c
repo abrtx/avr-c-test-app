@@ -7,15 +7,18 @@
 #include "led_pattern.h"
 #include "log.h"
 #include "config.h"
+#include "cmd_internal.h"
 
-extern Led leds[];
 
 #define CMD_BUFFER_SIZE 32
 #define MAX_ARGS 8
 
 static char buffer[CMD_BUFFER_SIZE];
-static uint8_t index = 0;
+static uint8_t buf_index = 0;
 static uint8_t prompt_shown = 0;
+
+static void cmd_help(int argc, char **argv); // forward
+void cmd_led(int argc, char **argv);
 
 // -----------------------------
 // Command handlers
@@ -43,47 +46,6 @@ static void cmd_status(int argc, char **argv) {
     log_fmt("LEDs: %d\r\n", LED_COUNT);
 }
 
-static void cmd_led(int argc, char **argv) {
-
-    if (argc < 3) {
-        log_fmt("Usage: led <index> <on|off|toggle>\r\n");
-        return;
-    }
-
-    int index = atoi(argv[1]);
-
-    if (index < 0 || index >= LED_COUNT) {
-        log_fmt("ERR: Invalid LED index\r\n");
-        return;
-    }
-
-    // 🔥 disable pattern system
-    led_pattern_set(LED_PATTERN_MANUAL);
-
-    if (strcmp(argv[2], "on") == 0) {
-
-        led_on(&leds[index]);
-        log_fmt("LED %d ON\r\n", index);
-
-    } else if (strcmp(argv[2], "off") == 0) {
-
-        led_off(&leds[index]);
-        log_fmt("LED %d OFF\r\n", index);
-
-    } else if (strcmp(argv[2], "toggle") == 0) {
-
-        led_toggle(&leds[index]);
-        log_fmt("LED %d TOGGLE\r\n", index);
-
-    } else {
-
-        log_fmt("ERR: Unknown action\r\n");
-    }
-}
-
-static void cmd_help(int argc, char **argv); // forward
-
-
 static void cmd_prompt(void) {
     log_fmt("> ");
 }
@@ -91,21 +53,13 @@ static void cmd_prompt(void) {
 // -----------------------------
 // Command table
 // -----------------------------
-typedef struct {
-    const char *name;
-    void (*handler)(int argc, char **argv);
-    const char *help;
-} Command;
-
-static void cmd_led(int argc, char **argv);
-
 
 static const Command commands[] = {
     { "off",    cmd_off,    "Turn OFF LEDs" },
     { "blink",  cmd_blink,  "Blink LEDs" },
     { "run",    cmd_run,    "Running pattern" },
     { "status", cmd_status, "Show system status" },
-    { "led", cmd_led, "Control LED: led <i> <on|off|toggle>" },
+    { "led",    cmd_led,    "Control LED: led <on|off|toggle> <i>" },
     { "help",   cmd_help,   "Show this help" },
 };
 
@@ -209,13 +163,13 @@ void cmd_update(void) {
 
             uart_write_string("\r\n");
 
-            buffer[index] = '\0';
+            buffer[buf_index] = '\0';
 
-            if (index > 0) {
+            if (buf_index > 0) {
                 process_command(buffer);
             }
 
-            index = 0;
+            buf_index = 0;
 
             cmd_prompt();
             continue;
@@ -231,8 +185,8 @@ void cmd_update(void) {
         // -----------------------------
         if (c == 127 || c == '\b') {
 
-            if (index > 0) {
-                index--;
+            if (buf_index > 0) {
+                buf_index--;
 
                 // erase visually
                 uart_write_string("\b \b");
@@ -246,9 +200,9 @@ void cmd_update(void) {
         // -----------------------------
         if (c >= 32 && c <= 126) {
 
-            if (index < CMD_BUFFER_SIZE - 1) {
+            if (buf_index < CMD_BUFFER_SIZE - 1) {
 
-                buffer[index++] = c;
+                buffer[buf_index++] = c;
 
                 // echo clean
                 uart_write_char(c);

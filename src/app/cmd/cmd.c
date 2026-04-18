@@ -15,7 +15,8 @@
 
 static char buffer[CMD_BUFFER_SIZE];
 static uint8_t buf_index = 0;
-static uint8_t prompt_shown = 0;
+//static uint8_t prompt_shown = 0;
+static uint8_t initialized = 0;
 
 static void cmd_help(int argc, char **argv); // forward
 void cmd_led(int argc, char **argv);
@@ -138,9 +139,9 @@ static void process_command(char *cmd) {
 // -----------------------------
 void cmd_update(void) {
 
-    if (!prompt_shown) {
-        cmd_prompt();
-        prompt_shown = 1;
+    if (!initialized) {
+        cmd_prompt();     // ✅ first prompt here
+        initialized = 1;
     }
 
     while (uart_available()) {
@@ -148,18 +149,18 @@ void cmd_update(void) {
         char c = uart_read_char();
 
         // -----------------------------
-        // IGNORE ESC SEQUENCES (arrows, etc)
+        // IGNORE ESC SEQUENCES
         // -----------------------------
-        if (c == 27) { // ESC
-            uart_read_char(); // skip '['
-            uart_read_char(); // skip next
+        if (c == 27) {
+            uart_read_char();
+            uart_read_char();
             continue;
         }
 
         // -----------------------------
-        // ENTER (handle ONLY '\r')
+        // ENTER (ONLY '\r')
         // -----------------------------
-        if (c == '\r') {
+        if (c == '\r' || c == '\n') {
 
             uart_write_string("\r\n");
 
@@ -171,11 +172,11 @@ void cmd_update(void) {
 
             buf_index = 0;
 
-            cmd_prompt();
+            cmd_prompt();   // ✅ ALWAYS print prompt here
             continue;
         }
 
-        // ignore '\n' completely (CRLF fix)
+        // ignore '\n'
         if (c == '\n') {
             continue;
         }
@@ -187,8 +188,6 @@ void cmd_update(void) {
 
             if (buf_index > 0) {
                 buf_index--;
-
-                // erase visually
                 uart_write_string("\b \b");
             }
 
@@ -196,16 +195,16 @@ void cmd_update(void) {
         }
 
         // -----------------------------
-        // PRINTABLE CHARACTERS ONLY
+        // PRINTABLE
         // -----------------------------
         if (c >= 32 && c <= 126) {
 
             if (buf_index < CMD_BUFFER_SIZE - 1) {
 
                 buffer[buf_index++] = c;
-
-                // echo clean
-                uart_write_char(c);
+                #ifndef HOST_BUILD
+		uart_write_char(c);
+                #endif
             }
         }
     }

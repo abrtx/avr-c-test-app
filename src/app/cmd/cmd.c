@@ -8,6 +8,7 @@
 #include "log.h"
 #include "config.h"
 #include "cmd_internal.h"
+#include "cmd_registry.h"
 
 
 #define CMD_BUFFER_SIZE 32
@@ -15,73 +16,44 @@
 
 static char buffer[CMD_BUFFER_SIZE];
 static uint8_t buf_index = 0;
-//static uint8_t prompt_shown = 0;
 static uint8_t initialized = 0;
 
 static void cmd_help(int argc, char **argv); // forward
 void cmd_led(int argc, char **argv);
 
-// -----------------------------
-// Command handlers
-// -----------------------------
-static void cmd_off(int argc, char **argv){
-    state_set(STATE_OFF);
-    led_pattern_set(LED_PATTERN_OFF);
-    log_fmt("OK: OFF\r\n");
-}
-
-static void cmd_blink(int argc, char **argv) {
-    state_set(STATE_BLINK);
-    led_pattern_set(LED_PATTERN_BLINK);
-    log_fmt("OK: BLINK\r\n");
-}
-
-static void cmd_run(int argc, char **argv) {
-    state_set(STATE_RUNNING);
-    led_pattern_set(LED_PATTERN_RUNNING);
-    log_fmt("OK: RUNNING\r\n");
-}
-
-static void cmd_status(int argc, char **argv) {
-    log_fmt("State: %s\r\n", state_to_string(state_get()));
-    log_fmt("LEDs: %d\r\n", LED_COUNT);
-}
-
 static void cmd_prompt(void) {
     log_fmt("> ");
 }
 
-// -----------------------------
-// Command table
-// -----------------------------
 
-static const Command commands[] = {
-    { "off",    cmd_off,    "Turn OFF LEDs" },
-    { "blink",  cmd_blink,  "Blink LEDs" },
-    { "run",    cmd_run,    "Running pattern" },
-    { "status", cmd_status, "Show system status" },
-    { "led",    cmd_led,    "Control LED: led <on|off|toggle> <i>" },
-    { "help",   cmd_help,   "Show this help" },
+// -----------------------------
+// Command handlers
+// -----------------------------
+static void cmd_help(int argc, char **argv);
+
+const Command cmd_core_commands[] = {
+    { "help", cmd_help, "Show this help" },
 };
 
-#define CMD_COUNT (sizeof(commands) / sizeof(commands[0]))
+const int cmd_core_count =
+    sizeof(cmd_core_commands) / sizeof(Command);
 
 // -----------------------------
 // Help command
 // -----------------------------
 static void cmd_help(int argc, char **argv){
 
+    int count;
+    const Command *commands = cmd_get_commands(&count);
+
     log_fmt("Commands:\r\n");
 
-    for (uint8_t i = 0; i < CMD_COUNT; i++) {
+    for (int i = 0; i < count; i++) {
         log_fmt(" - %s: %s\r\n",
             commands[i].name,
             commands[i].help);
     }
 }
-
-
-
 
 static int parse_args(char *input, char **argv) {
 
@@ -122,7 +94,10 @@ static void process_command(char *cmd) {
     if (argc == 0)
         return;
 
-    for (uint8_t i = 0; i < CMD_COUNT; i++) {
+    int count = 0;
+    const Command *commands = cmd_get_commands(&count);
+
+    for (int i = 0; i < count; i++) {
 
         if (strcmp(argv[0], commands[i].name) == 0) {
             commands[i].handler(argc, argv);
@@ -132,7 +107,6 @@ static void process_command(char *cmd) {
 
     log_fmt("ERR: Unknown command\r\n");
 }
-
 
 // -----------------------------
 // UART processing
@@ -209,7 +183,5 @@ void cmd_update(void) {
         }
     }
 }
-
-
 
 

@@ -1,12 +1,8 @@
 #ifndef CMD_INTERNAL_H
 #define CMD_INTERNAL_H
+#include "cmd_registry.h"
 
 typedef void (*CmdHandler)(int argc, char **argv);
 
-typedef struct {
-    const char *name;
-    CmdHandler handler;
-    const char *help;
-} Command;
 
 #endif

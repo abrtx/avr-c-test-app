@@ -6,7 +6,7 @@
 #include "led.h"
 #include "led_pattern.h"
 #include "config.h"
-
+#include "cmd_registry.h"
 
 extern Led leds[];
 
@@ -95,3 +95,10 @@ void cmd_led(int argc, char **argv) {
 
     log_fmt("ERR: Unknown subcommand\r\n");
 }
+
+
+const Command cmd_led_commands[] = {
+    { "led", cmd_led, "Control LED: led <i> <on|off|toggle>" },
+};
+
+const int cmd_led_count = sizeof(cmd_led_commands) / sizeof(Command);
